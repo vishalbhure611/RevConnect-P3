@@ -1,0 +1,108 @@
+.container { max-width: 860px; margin: 24px auto; padding: 0 16px; }
+.connections-layout { display: flex; flex-direction: column; gap: 0; }
+
+/* Alerts */
+.alert { padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; }
+.alert-success { background: #d4edda; color: #155724; }
+.alert-error { background: #f8d7da; color: #721c24; }
+
+/* Tabs bar */
+.tabs-bar {
+  display: flex; gap: 2px; flex-wrap: wrap;
+  background: #fff; border-radius: 10px 10px 0 0;
+  border: 1px solid #e4e6eb; border-bottom: none;
+  padding: 8px 8px 0;
+}
+.tab-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 18px; border: none; background: none;
+  cursor: pointer; font-size: 14px; font-weight: 500;
+  color: #65676b; border-bottom: 3px solid transparent;
+  margin-bottom: -1px; border-radius: 6px 6px 0 0;
+  transition: color 0.15s, background 0.15s;
+}
+.tab-btn:hover:not(.active) { background: #f0f2f5; color: #050505; }
+.tab-btn.active { color: #1877f2; border-bottom-color: #1877f2; font-weight: 600; }
+
+.count-badge {
+  background: #e4e6eb; color: #65676b;
+  font-size: 11px; font-weight: 700;
+  padding: 1px 7px; border-radius: 10px; min-width: 20px; text-align: center;
+}
+.count-badge.has-items { background: #e74c3c; color: #fff; }
+
+/* Tab content */
+.tab-content {
+  background: #fff; border: 1px solid #e4e6eb;
+  border-radius: 0 0 10px 10px; padding: 20px;
+  min-height: 200px;
+}
+.section-title { font-size: 17px; font-weight: 700; margin: 0 0 16px; color: #050505; }
+
+/* Empty state */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; padding: 48px 20px; color: #65676b; text-align: center;
+}
+.empty-icon { font-size: 40px; }
+.empty-state p { margin: 0; font-size: 15px; }
+
+/* User list */
+.user-list { display: flex; flex-direction: column; gap: 12px; }
+
+.user-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; border-radius: 10px;
+  border: 1px solid #e4e6eb; background: #fafafa;
+  transition: box-shadow 0.15s;
+}
+.user-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); background: #fff; }
+
+.user-avatar {
+  width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 20px;
+}
+
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-weight: 600; font-size: 15px; color: #050505; text-decoration: none; display: block; }
+.user-name:hover { text-decoration: underline; color: #1877f2; }
+.user-meta { font-size: 13px; color: #65676b; margin: 2px 0; }
+.user-bio { font-size: 13px; color: #444; margin: 4px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.request-time { font-size: 12px; color: #65676b; margin: 4px 0 0; }
+
+.role-badge {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  padding: 1px 7px; border-radius: 8px;
+  background: #e7f3ff; color: #1877f2;
+}
+
+.status-badge { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 10px; }
+.status-badge.pending { background: #fff3cd; color: #856404; }
+
+/* Card actions */
+.card-actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+
+/* Buttons */
+.btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; transition: all 0.15s; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-primary { background: #1877f2; color: white; }
+.btn-primary:hover { background: #166fe5; }
+.btn-success { background: #28a745; color: white; }
+.btn-success:hover { background: #218838; }
+.btn-secondary { background: #e4e6eb; color: #050505; }
+.btn-secondary:hover { background: #d8dadf; }
+.btn-danger { background: #fff0f0; color: #e74c3c; border: 1px solid #fcc; }
+.btn-danger:hover { background: #fde8e8; }
+.btn-outline { background: transparent; border: 1px solid #1877f2; color: #1877f2; }
+.btn-outline:hover { background: #e7f3ff; }
+
+@media (max-width: 600px) {
+  .tabs-bar { 
+    padding: 6px 4px 0;
+  }
+  .tab-btn { padding: 8px 10px; font-size: 12px; }
+  .user-card { flex-wrap: wrap; }
+  .card-actions { width: 100%; justify-content: flex-start; }
+}

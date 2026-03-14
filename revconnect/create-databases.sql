@@ -1,0 +1,10 @@
+-- Create all databases for microservices
+CREATE DATABASE IF NOT EXISTS user_db;
+CREATE DATABASE IF NOT EXISTS post_db;
+CREATE DATABASE IF NOT EXISTS product_db;
+CREATE DATABASE IF NOT EXISTS social_db;
+CREATE DATABASE IF NOT EXISTS analytics_db;
+CREATE DATABASE IF NOT EXISTS notification_db;
+
+-- Show created databases
+SHOW DATABASES;
