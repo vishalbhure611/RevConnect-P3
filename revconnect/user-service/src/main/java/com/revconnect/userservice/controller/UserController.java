@@ -90,6 +90,23 @@ public class UserController {
         return ResponseEntity.ok(userService.searchUsers(query));
     }
 
+    @PutMapping("/{userId}/change-password")
+    public ResponseEntity<?> changePassword(@PathVariable Long userId, @RequestBody Map<String, String> body) {
+        try {
+            String currentPassword = body.get("currentPassword");
+            String newPassword = body.get("newPassword");
+            if (currentPassword == null || newPassword == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "currentPassword and newPassword are required"));
+            }
+            userService.changePassword(userId, currentPassword, newPassword);
+            return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @GetMapping("/{userId}/profile")
     public ResponseEntity<?> getUserProfile(@PathVariable Long userId) {
         try {

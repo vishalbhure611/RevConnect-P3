@@ -46,13 +46,13 @@ public class Post {
     private String taggedProductIds;
 
     public Post() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = java.time.LocalDateTime.now(java.time.ZoneOffset.UTC);
     }
 
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
-            createdAt = LocalDateTime.now();
+            createdAt = java.time.LocalDateTime.now(java.time.ZoneOffset.UTC);
         }
         if (postType == null) {
             postType = "REGULAR";

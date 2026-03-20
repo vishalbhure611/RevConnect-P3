@@ -77,4 +77,8 @@ export class UserService {
   searchUsers(query: string): Observable<User[]> {
     return this.http.get<User[]>(`${environment.apiUrl}/users/search`, { params: { query } });
   }
+
+  changePassword(userId: number, currentPassword: string, newPassword: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${userId}/change-password`, { currentPassword, newPassword });
+  }
 }

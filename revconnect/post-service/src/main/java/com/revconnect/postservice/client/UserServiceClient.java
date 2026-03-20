@@ -1,39 +1,21 @@
 package com.revconnect.postservice.client;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.Map;
 
-@Component
-public class UserServiceClient {
+@FeignClient(name = "user-service", fallback = UserServiceClientFallback.class)
+public interface UserServiceClient {
 
-    @Value("${services.user-service.url}")
-    private String userServiceUrl;
+    @GetMapping("/api/users/{userId}")
+    Map<String, Object> getUserById(@PathVariable("userId") Long userId);
 
-    private final RestTemplate restTemplate;
-
-    public UserServiceClient() {
-        this.restTemplate = new RestTemplate();
-    }
-
-    public Map<String, Object> getUserById(Long userId) {
+    default boolean userExists(Long userId) {
         try {
-            String url = userServiceUrl + "/api/users/" + userId;
-            return restTemplate.getForObject(url, Map.class);
-        } catch (HttpClientErrorException.NotFound e) {
-            throw new RuntimeException("User not found");
-        } catch (Exception e) {
-            throw new RuntimeException("User service unavailable");
-        }
-    }
-
-    public boolean userExists(Long userId) {
-        try {
-            getUserById(userId);
-            return true;
+            Map<String, Object> user = getUserById(userId);
+            return user != null && !user.isEmpty();
         } catch (Exception e) {
             return false;
         }

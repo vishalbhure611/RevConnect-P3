@@ -233,3 +233,23 @@ textarea.form-control { resize: vertical; }
   .add-link-row .btn { width: 100%; }
   .hours-edit-row { flex-wrap: wrap; }
 }
+
+/* ── Change Password Panel ── */
+.change-password-panel {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e4e6eb;
+}
+
+.cp-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #050505;
+  margin: 0 0 14px 0;
+}
+
+.cp-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}

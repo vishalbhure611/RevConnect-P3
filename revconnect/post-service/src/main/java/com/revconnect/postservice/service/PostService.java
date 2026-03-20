@@ -47,7 +47,9 @@ public class PostService {
     @Transactional
     public PostDTO createPost(CreatePostRequest request, Long userId) {
         // Validate user exists
-        if (!userServiceClient.userExists(userId)) {
+        try {
+            userServiceClient.getUserById(userId);
+        } catch (Exception e) {
             throw new RuntimeException("User not found");
         }
 
@@ -158,7 +160,18 @@ public class PostService {
         return posts.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
-    // Search posts by keyword
+    // Internal: feed by explicit author IDs (called by feed-service via Feign)
+    public List<PostDTO> getFeedByAuthorIds(List<Long> authorIds) {
+        return postRepository.findByAuthorIdInOrderByCreatedAtDesc(authorIds)
+                .stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+
+    // Internal: filtered feed by explicit author IDs (called by feed-service via Feign)
+    public List<PostDTO> getFeedFilteredByAuthorIds(List<Long> authorIds, String postType) {
+        return postRepository.findByAuthorIdInAndPostTypeOrderByCreatedAtDesc(authorIds, postType.toUpperCase())
+                .stream().map(this::mapToDTO).collect(Collectors.toList());
+    }
+
     public List<PostDTO> searchByKeyword(String keyword) {
         return postRepository.searchByKeyword(keyword).stream()
                 .map(this::mapToDTO).collect(Collectors.toList());
@@ -201,7 +214,7 @@ public class PostService {
 
     // Get scheduled (future) posts for a user
     public List<PostDTO> getScheduledPosts(Long userId) {
-        return postRepository.findScheduledByAuthor(userId, LocalDateTime.now())
+        return postRepository.findScheduledByAuthor(userId, LocalDateTime.now(java.time.ZoneOffset.UTC))
                 .stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
@@ -215,7 +228,7 @@ public class PostService {
     @Scheduled(fixedDelay = 60000)
     @Transactional
     public void publishScheduledPosts() {
-        List<Post> due = postRepository.findDueScheduledPosts(LocalDateTime.now());
+        List<Post> due = postRepository.findDueScheduledPosts(LocalDateTime.now(java.time.ZoneOffset.UTC));
         for (Post post : due) {
             post.setScheduledAt(null); // clear schedule — now it's live
             postRepository.save(post);
@@ -279,7 +292,7 @@ public class PostService {
         dto.setMediaPath(post.getMediaPath());
         dto.setPinned(post.isPinned());
         dto.setScheduledAt(post.getScheduledAt());
-        dto.setPublished(post.getScheduledAt() == null || post.getScheduledAt().isBefore(LocalDateTime.now()));
+        dto.setPublished(post.getScheduledAt() == null || post.getScheduledAt().isBefore(LocalDateTime.now(java.time.ZoneOffset.UTC)));
 
         // Parse tagged product IDs from JSON string
         if (post.getTaggedProductIds() != null && !post.getTaggedProductIds().isBlank()) {

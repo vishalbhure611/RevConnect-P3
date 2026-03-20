@@ -40,6 +40,9 @@ export class RegisterComponent {
   // Stores error message to show in UI
   errorMessage = '';
 
+  // Stores success message
+  successMessage = '';
+
   // Controls loading spinner / button disable state
   isLoading = false;
 
@@ -102,26 +105,29 @@ export class RegisterComponent {
     // Call backend register API
     this.authService.register(this.user).subscribe({
       next: () => {
-        // Registration successful — go to profile-setup for CREATOR/BUSINESS, login for USER
-        if (this.user.role === 'CREATOR' || this.user.role === 'BUSINESS') {
-          // Must login first to get token, then redirect to profile-setup
-          this.authService.login({ username: this.user.username, password: this.user.password! }).subscribe({
-            next: () => this.router.navigate(['/profile-setup']),
-            error: () => this.router.navigate(['/login'])
-          });
-        } else {
-          this.router.navigate(['/login']);
-        }
+        this.successMessage = 'Registration successful! Redirecting...';
+        this.isLoading = false;
+        setTimeout(() => {
+          // Registration successful — go to profile-setup for CREATOR/BUSINESS, login for USER
+          if (this.user.role === 'CREATOR' || this.user.role === 'BUSINESS') {
+            this.authService.login({ username: this.user.username, password: this.user.password! }).subscribe({
+              next: () => this.router.navigate(['/profile-setup']),
+              error: () => this.router.navigate(['/login'])
+            });
+          } else {
+            this.router.navigate(['/login']);
+          }
+        }, 1500);
       },
 
       // If registration fails
       error: (error) => {
         console.error('Registration error:', error);
 
-        if (error.error && error.error.message) {
+        if (error.status === 409 || (error.error?.message && error.error.message.toLowerCase().includes('exist'))) {
+          this.errorMessage = 'Username or email already exists. Please try different credentials.';
+        } else if (error.error?.message) {
           this.errorMessage = error.error.message;
-        } else if (error.message) {
-          this.errorMessage = error.message;
         } else {
           this.errorMessage = 'Registration failed. Please try again.';
         }

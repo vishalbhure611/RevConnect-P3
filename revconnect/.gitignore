@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Docker ###
+.env
+
+### Frontend generated folders ###
+revconnect-frontend/node_modules/
+revconnect-frontend/.angular/
+revconnect-frontend/dist/

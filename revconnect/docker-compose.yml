@@ -1,0 +1,561 @@
+# version: "3.8"
+
+# networks:
+#   revconnect-network:
+#     driver: bridge
+
+# volumes:
+#   mysql-data:
+
+# services:
+
+#   mysql:
+#     image: mysql:8
+#     container_name: revconnect-mysql
+#     environment:
+#       MYSQL_ROOT_PASSWORD: "admin@123"
+#     ports:
+#       - "3307:3306"
+#     volumes:
+#       - mysql-data:/var/lib/mysql
+#       - ./create-databases.sql:/docker-entrypoint-initdb.d/create-databases.sql:ro
+#     healthcheck:
+#       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-padmin@123"]
+#       interval: 15s
+#       timeout: 10s
+#       retries: 10
+#       start_period: 60s
+#     networks:
+#       - revconnect-network
+
+#   eureka-server:
+#     build:
+#       context: .
+#       dockerfile: eureka-server/Dockerfile
+#     image: revconnect/eureka-server:latest
+#     container_name: revconnect-eureka
+#     ports:
+#       - "8761:8761"
+#     environment:
+#       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+#     restart: on-failure
+#     networks:
+#       - revconnect-network
+
+#   config-server:
+#     build:
+#       context: .
+#       dockerfile: config-server/Dockerfile
+#     image: revconnect/config-server:latest
+#     container_name: revconnect-config
+#     ports:
+#       - "8888:8888"
+#     environment:
+#       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+#       CONFIG_SERVER_URL: http://config-server:8888
+#     depends_on:
+#       - eureka-server
+#     restart: on-failure
+#     networks:
+#       - revconnect-network
+
+#   user-service:
+#     build:
+#       context: .
+#       dockerfile: user-service/Dockerfile
+#     image: revconnect/user-service:latest
+#     container_name: revconnect-user
+#     ports:
+#       - "8081:8081"
+#     environment:
+#       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+#       CONFIG_SERVER_URL: http://config-server:8888
+#       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/user_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#       SPRING_DATASOURCE_USERNAME: root
+#       SPRING_DATASOURCE_PASSWORD: "admin@123"
+#       JWT_SECRET: "revconnect-secret-key-for-jwt-token-generation-2026-secure-microservices"
+#     depends_on:
+#       mysql:
+#         condition: service_healthy
+#       config-server:
+#         condition: service_started
+#     restart: on-failure
+#     networks:
+#       - revconnect-network
+
+#   post-service:
+#     build:
+#       context: .
+#       dockerfile: post-service/Dockerfile
+#     image: revconnect/post-service:latest
+#     container_name: revconnect-post
+#     ports:
+#       - "8082:8082"
+#     environment:
+#       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+#       CONFIG_SERVER_URL: http://config-server:8888
+#       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/post_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#       SPRING_DATASOURCE_USERNAME: root
+#       SPRING_DATASOURCE_PASSWORD: "admin@123"
+#     depends_on:
+#       mysql:
+#         condition: service_healthy
+#       config-server:
+#         condition: service_started
+#     restart: on-failure
+#     networks:
+#       - revconnect-network
+
+#   product-service:
+#     build:
+#       context: .
+#       dockerfile: product-service/Dockerfile
+#     image: revconnect/product-service:latest
+#     container_name: revconnect-product
+#     ports:
+#       - "8083:8083"
+#     environment:
+#       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+#       CONFIG_SERVER_URL: http://config-server:8888
+#       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/product_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#       SPRING_DATASOURCE_USERNAME: root
+#       SPRING_DATASOURCE_PASSWORD: "admin@123"
+#     depends_on:
+#       mysql:
+#         condition: service_healthy
+#       config-server:
+#         condition: service_started
+#     restart: on-failure
+#     networks:
+#       - revconnect-network
+
+#   social-service:
+#     build:
+#       context: .
+#       dockerfile: social-service/Dockerfile
+#     image: revconnect/social-service:latest
+#     container_name: revconnect-social
+#     ports:
+#       - "8084:8084"
+#     environment:
+#       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+#       CONFIG_SERVER_URL: http://config-server:8888
+#       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/social_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#       SPRING_DATASOURCE_USERNAME: root
+#       SPRING_DATASOURCE_PASSWORD: "admin@123"
+#     depends_on:
+#       mysql:
+#         condition: service_healthy
+#       config-server:
+#         condition: service_started
+#     restart: on-failure
+#     networks:
+#       - revconnect-network
+
+#   analytics-service:
+#     build:
+#       context: .
+#       dockerfile: analytics-service/Dockerfile
+#     image: revconnect/analytics-service:latest
+#     container_name: revconnect-analytics
+#     ports:
+#       - "8085:8085"
+#     environment:
+#       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+#       CONFIG_SERVER_URL: http://config-server:8888
+#       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/analytics_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#       SPRING_DATASOURCE_USERNAME: root
+#       SPRING_DATASOURCE_PASSWORD: "admin@123"
+#     depends_on:
+#       mysql:
+#         condition: service_healthy
+#       config-server:
+#         condition: service_started
+#     restart: on-failure
+#     networks:
+#       - revconnect-network
+
+#   notification-service:
+#     build:
+#       context: .
+#       dockerfile: notification-service/Dockerfile
+#     image: revconnect/notification-service:latest
+#     container_name: revconnect-notification
+#     ports:
+#       - "8086:8086"
+#     environment:
+#       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+#       CONFIG_SERVER_URL: http://config-server:8888
+#       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/notification_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#       SPRING_DATASOURCE_USERNAME: root
+#       SPRING_DATASOURCE_PASSWORD: "admin@123"
+#     depends_on:
+#       mysql:
+#         condition: service_healthy
+#       config-server:
+#         condition: service_started
+#     restart: on-failure
+#     networks:
+#       - revconnect-network
+
+#   interaction-service:
+#     build:
+#       context: .
+#       dockerfile: interaction-service/Dockerfile
+#     image: revconnect/interaction-service:latest
+#     container_name: revconnect-interaction
+#     ports:
+#       - "8087:8087"
+#     environment:
+#       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+#       CONFIG_SERVER_URL: http://config-server:8888
+#       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/interaction_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#       SPRING_DATASOURCE_USERNAME: root
+#       SPRING_DATASOURCE_PASSWORD: "admin@123"
+#     depends_on:
+#       mysql:
+#         condition: service_healthy
+#       config-server:
+#         condition: service_started
+#     restart: on-failure
+#     networks:
+#       - revconnect-network
+
+#   feed-service:
+#     build:
+#       context: .
+#       dockerfile: feed-service/Dockerfile
+#     image: revconnect/feed-service:latest
+#     container_name: revconnect-feed
+#     ports:
+#       - "8088:8088"
+#     environment:
+#       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+#       CONFIG_SERVER_URL: http://config-server:8888
+#       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/feed_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+#       SPRING_DATASOURCE_USERNAME: root
+#       SPRING_DATASOURCE_PASSWORD: "admin@123"
+#     depends_on:
+#       mysql:
+#         condition: service_healthy
+#       config-server:
+#         condition: service_started
+#     restart: on-failure
+#     networks:
+#       - revconnect-network
+
+#   api-gateway:
+#     build:
+#       context: .
+#       dockerfile: api-gateway/Dockerfile
+#     image: revconnect/api-gateway:latest
+#     container_name: revconnect-gateway
+#     ports:
+#       - "8080:8080"
+#     environment:
+#       EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+#       CONFIG_SERVER_URL: http://config-server:8888
+#       JWT_SECRET: "revconnect-secret-key-for-jwt-token-generation-2026-secure-microservices"
+#     depends_on:
+#       - eureka-server
+#       - config-server
+#     restart: on-failure
+#     networks:
+#       - revconnect-network
+
+#   frontend:
+#     build:
+#       context: ../revconnect-frontend
+#       dockerfile: Dockerfile
+#     image: revconnect/frontend:latest
+#     container_name: revconnect-frontend
+#     ports:
+#       - "4200:4200"
+#     depends_on:
+#       - api-gateway
+#     networks:
+#       - revconnect-network
+
+
+
+version: "3.8"
+
+networks:
+  revconnect-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+
+services:
+
+  mysql:
+    image: mysql:8
+    container_name: revconnect-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "admin@123"
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./create-databases.sql:/docker-entrypoint-initdb.d/create-databases.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-padmin@123"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    networks:
+      - revconnect-network
+
+  eureka-server:
+    build:
+      context: .
+      dockerfile: eureka-server/Dockerfile
+    image: revconnect/eureka-server:latest
+    container_name: revconnect-eureka
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+    restart: on-failure
+    networks:
+      - revconnect-network
+
+  config-server:
+    build:
+      context: .
+      dockerfile: config-server/Dockerfile
+    image: revconnect/config-server:latest
+    container_name: revconnect-config
+    ports:
+      - "8888:8888"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+    depends_on:
+      - eureka-server
+    restart: on-failure
+    networks:
+      - revconnect-network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    image: revconnect/user-service:latest
+    container_name: revconnect-user
+    ports:
+      - "8081:8081"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/user_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "admin@123"
+      JWT_SECRET: "revconnect-secret-key-for-jwt-token-generation-2026-secure-microservices"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - revconnect-network
+
+  post-service:
+    build:
+      context: .
+      dockerfile: post-service/Dockerfile
+    image: revconnect/post-service:latest
+    container_name: revconnect-post
+    ports:
+      - "8082:8082"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/post_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "admin@123"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - revconnect-network
+
+  product-service:
+    build:
+      context: .
+      dockerfile: product-service/Dockerfile
+    image: revconnect/product-service:latest
+    container_name: revconnect-product
+    ports:
+      - "8083:8083"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/product_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "admin@123"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - revconnect-network
+
+  social-service:
+    build:
+      context: .
+      dockerfile: social-service/Dockerfile
+    image: revconnect/social-service:latest
+    container_name: revconnect-social
+    ports:
+      - "8084:8084"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/social_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "admin@123"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - revconnect-network
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: analytics-service/Dockerfile
+    image: revconnect/analytics-service:latest
+    container_name: revconnect-analytics
+    ports:
+      - "8085:8085"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/analytics_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "admin@123"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - revconnect-network
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    image: revconnect/notification-service:latest
+    container_name: revconnect-notification
+    ports:
+      - "8086:8086"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/notification_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "admin@123"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - revconnect-network
+
+  interaction-service:
+    build:
+      context: .
+      dockerfile: interaction-service/Dockerfile
+    image: revconnect/interaction-service:latest
+    container_name: revconnect-interaction
+    ports:
+      - "8089:8089"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/interaction_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "admin@123"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - revconnect-network
+
+  feed-service:
+    build:
+      context: .
+      dockerfile: feed-service/Dockerfile
+    image: revconnect/feed-service:latest
+    container_name: revconnect-feed
+    ports:
+      - "8088:8088"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/feed_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: "admin@123"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      config-server:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - revconnect-network
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    image: revconnect/api-gateway:latest
+    container_name: revconnect-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+      JWT_SECRET: "revconnect-secret-key-for-jwt-token-generation-2026-secure-microservices"
+    depends_on:
+      - eureka-server
+      - config-server
+      - user-service
+      - post-service
+      - product-service
+      - social-service
+    restart: on-failure
+    networks:
+      - revconnect-network
+
+  frontend:
+    build:
+      context: ../revconnect-frontend
+      dockerfile: Dockerfile
+    image: revconnect/frontend:latest
+    container_name: revconnect-frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - api-gateway
+    networks:
+      - revconnect-network

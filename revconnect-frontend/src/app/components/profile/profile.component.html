@@ -60,6 +60,9 @@
       <div class="profile-actions">
         <ng-container *ngIf="isOwnProfile">
           <button *ngIf="!isEditing" (click)="startEdit()" class="btn btn-primary">Edit Profile</button>
+          <button *ngIf="isOwnProfile && !isEditing" (click)="showChangePassword = !showChangePassword" class="btn btn-secondary">
+            🔒 Change Password
+          </button>
           <ng-container *ngIf="isEditing">
             <button (click)="saveProfile()" class="btn btn-success" [disabled]="isLoading">
               {{ isLoading ? 'Saving...' : 'Save Changes' }}
@@ -73,6 +76,31 @@
           <button *ngIf="user.role === 'USER' && !connectionSent" (click)="sendConnectionRequest()" class="btn btn-outline">Connect</button>
           <span *ngIf="connectionSent" class="badge badge-public">Request Sent</span>
         </ng-container>
+      </div>
+
+      <!-- Change Password Panel -->
+      <div class="change-password-panel" *ngIf="isOwnProfile && showChangePassword">
+        <h4 class="cp-title">Change Password</h4>
+        <div class="alert alert-error" *ngIf="pwError">{{ pwError }}</div>
+        <div class="alert alert-success" *ngIf="pwSuccess">{{ pwSuccess }}</div>
+        <div class="form-group">
+          <label>Current Password</label>
+          <input type="password" class="form-control" [(ngModel)]="pwForm.currentPassword" placeholder="Enter current password" />
+        </div>
+        <div class="form-group">
+          <label>New Password</label>
+          <input type="password" class="form-control" [(ngModel)]="pwForm.newPassword" placeholder="Min 8 characters" />
+        </div>
+        <div class="form-group">
+          <label>Confirm New Password</label>
+          <input type="password" class="form-control" [(ngModel)]="pwForm.confirmPassword" placeholder="Repeat new password" />
+        </div>
+        <div class="cp-actions">
+          <button class="btn btn-primary" (click)="submitChangePassword()" [disabled]="pwLoading">
+            {{ pwLoading ? 'Saving...' : 'Update Password' }}
+          </button>
+          <button class="btn btn-secondary" (click)="showChangePassword = false; pwError = ''; pwSuccess = ''">Cancel</button>
+        </div>
       </div>
     </div>
 

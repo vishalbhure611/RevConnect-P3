@@ -1,32 +1,13 @@
 package com.revconnect.productservice.client;
 
 import com.revconnect.productservice.dto.UserDTO;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
-@Component
-public class UserServiceClient {
+@FeignClient(name = "user-service", fallback = UserServiceClientFallback.class)
+public interface UserServiceClient {
 
-    private final RestTemplate restTemplate;
-    private final String userServiceUrl;
-
-    public UserServiceClient(RestTemplate restTemplate,
-                             @Value("${service.user-service.url}") String userServiceUrl) {
-        this.restTemplate = restTemplate;
-        this.userServiceUrl = userServiceUrl;
-    }
-
-    public UserDTO getUserById(Long userId) {
-        try {
-            String url = userServiceUrl + "/api/users/" + userId;
-            return restTemplate.getForObject(url, UserDTO.class);
-        } catch (HttpClientErrorException.NotFound e) {
-            return null;
-        } catch (Exception e) {
-            throw new RuntimeException("User service unavailable", e);
-        }
-    }
+    @GetMapping("/api/users/{userId}")
+    UserDTO getUserById(@PathVariable("userId") Long userId);
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Post, Comment } from '../models/post.model';
+import { Post } from '../models/post.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -11,7 +11,7 @@ export class PostService {
 
   constructor(private http: HttpClient) {}
 
-  // POST /api/posts  — X-User-Id added by JWT interceptor
+  // POST /api/posts
   createPost(post: Post & { hashtags?: string[]; scheduledAt?: string; taggedProductIds?: number[] }): Observable<Post> {
     return this.http.post<Post>(this.apiUrl, {
       content: post.content,
@@ -29,35 +29,11 @@ export class PostService {
     return this.http.get<Post>(`${this.apiUrl}/${id}`);
   }
 
-  // GET /api/posts/user/{userId} — user's own posts (paginated)
+  // GET /api/posts/user/{userId}
   getPostsByUser(userId: number): Observable<Post[]> {
     return this.http.get<any>(`${this.apiUrl}/user/${userId}`).pipe(
       map(r => r.content || r)
     );
-  }
-
-  // GET /api/posts/feed?followingIds=1,2,3&postType=REGULAR — personalized feed
-  getFeed(followingIds: number[], postType?: string): Observable<Post[]> {
-    const params: any = {};
-    if (followingIds.length > 0) params['followingIds'] = followingIds.join(',');
-    if (postType) params['postType'] = postType;
-    return this.http.get<Post[]>(`${this.apiUrl}/feed`, { params });
-  }
-
-  // GET /api/posts/search?keyword=
-  searchPosts(keyword: string): Observable<Post[]> {
-    return this.http.get<Post[]>(`${this.apiUrl}/search`, { params: { keyword } });
-  }
-
-  // GET /api/posts/hashtag/{tag}
-  searchByHashtag(tag: string): Observable<Post[]> {
-    const clean = tag.startsWith('#') ? tag.substring(1) : tag;
-    return this.http.get<Post[]>(`${this.apiUrl}/hashtag/${clean}`);
-  }
-
-  // GET /api/posts/trending-hashtags
-  getTrendingHashtags(limit = 10): Observable<{ name: string; count: number }[]> {
-    return this.http.get<{ name: string; count: number }[]>(`${this.apiUrl}/trending-hashtags`, { params: { limit } });
   }
 
   // PUT /api/posts/{postId}
@@ -95,53 +71,12 @@ export class PostService {
     return this.http.get<Post[]>(`${this.apiUrl}/pinned/${userId}`);
   }
 
-  // ---- Comments ----
-
-  addComment(comment: Comment): Observable<Comment> {
-    return this.http.post<Comment>(`${environment.apiUrl}/comments`, {
-      postId: comment.postId,
-      content: comment.content
-    });
-  }
-
-  getCommentsByPost(postId: number): Observable<Comment[]> {
-    return this.http.get<Comment[]>(`${environment.apiUrl}/comments/post/${postId}`);
-  }
-
-  deleteComment(id: number): Observable<void> {
-    return this.http.delete<void>(`${environment.apiUrl}/comments/${id}`);
-  }
-
-  // ---- Likes ----
-
-  likePost(postId: number): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/likes`, {}, { params: { postId } });
-  }
-
-  unlikePost(postId: number): Observable<void> {
-    return this.http.delete<void>(`${environment.apiUrl}/likes`, { params: { postId } });
-  }
-
-  getLikeCount(postId: number): Observable<number> {
-    return this.http.get<{ count: number }>(`${environment.apiUrl}/likes/post/${postId}/count`).pipe(
-      map(r => r.count)
-    );
-  }
-
-  isLikedByUser(postId: number): Observable<boolean> {
-    return this.http.get<{ liked: boolean }>(`${environment.apiUrl}/likes/post/${postId}/user`).pipe(
-      map(r => r.liked)
-    );
-  }
-
-  // ---- Search ----
-
+  // ---- Search (users) ----
   searchUsers(keyword: string): Observable<any[]> {
     return this.http.get<any[]>(`${environment.apiUrl}/users/search`, { params: { keyword } });
   }
 
   // ---- File upload ----
-
   uploadFile(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);

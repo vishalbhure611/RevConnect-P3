@@ -37,6 +37,8 @@
         <module>social-service</module>
         <module>analytics-service</module>
         <module>notification-service</module>
+        <module>feed-service</module>
+        <module>interaction-service</module>
     </modules>
 
     <dependencyManagement>

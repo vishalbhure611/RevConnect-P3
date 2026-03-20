@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Post, Comment } from '../../models/post.model';
 import { PostService } from '../../services/post.service';
+import { InteractionService } from '../../services/interaction.service';
 import { AuthService } from '../../services/auth.service';
 import { AnalyticsService } from '../../services/analytics.service';
-import { NotificationService } from '../../services/notification.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+
 @Component({
   selector: 'app-post-card',
   standalone: true,
@@ -40,9 +41,9 @@ export class PostCardComponent implements OnInit {
 
   constructor(
     private postService: PostService,
+    private interactionService: InteractionService,
     public authService: AuthService,
     private analyticsService: AnalyticsService,
-    private notificationService: NotificationService,
     private http: HttpClient
   ) {}
 
@@ -51,7 +52,7 @@ export class PostCardComponent implements OnInit {
     this.commentCount = this.post.commentCount || 0;
 
     if (this.post.id) {
-      this.postService.isLikedByUser(this.post.id).subscribe({
+      this.interactionService.isLikedByUser(this.post.id).subscribe({
         next: (liked) => this.isLiked = liked,
         error: () => {}
       });
@@ -97,7 +98,7 @@ export class PostCardComponent implements OnInit {
     const currentUserId = this.authService.getCurrentUserId();
 
     if (this.isLiked) {
-      this.postService.unlikePost(this.post.id!).subscribe({
+      this.interactionService.unlikePost(this.post.id!).subscribe({
         next: () => {
           this.isLiked = false;
           this.likeCount = Math.max(0, this.likeCount - 1);
@@ -109,7 +110,7 @@ export class PostCardComponent implements OnInit {
         error: () => { this.isLikeLoading = false; }
       });
     } else {
-      this.postService.likePost(this.post.id!).subscribe({
+      this.interactionService.likePost(this.post.id!).subscribe({
         next: () => {
           this.isLiked = true;
           this.likeCount++;
@@ -117,7 +118,6 @@ export class PostCardComponent implements OnInit {
           if (this.post.authorId) {
             this.analyticsService.trackEvent(this.post.id!, 'LIKE', this.post.authorId).subscribe({ error: () => {} });
           }
-          // Notify post author (skip if liking own post)
           if (currentUserId && this.post.authorId && Number(currentUserId) !== Number(this.post.authorId)) {
             this.sendNotification(this.post.authorId, 'LIKE',
               `${this.authService.getCurrentUser()?.username || 'Someone'} liked your post`, this.post.id);
@@ -134,7 +134,7 @@ export class PostCardComponent implements OnInit {
   }
 
   loadComments(): void {
-    this.postService.getCommentsByPost(this.post.id!).subscribe({
+    this.interactionService.getCommentsByPost(this.post.id!).subscribe({
       next: (comments) => {
         this.comments = comments;
         this.commentCount = comments.length;
@@ -148,16 +148,14 @@ export class PostCardComponent implements OnInit {
     const userId = this.authService.getCurrentUserId();
     if (!userId) return;
 
-    this.postService.addComment({ content: this.newCommentContent, userId, postId: this.post.id! }).subscribe({
+    this.interactionService.addComment({ content: this.newCommentContent, userId, postId: this.post.id! }).subscribe({
       next: (c) => {
         this.comments.unshift(c);
         this.newCommentContent = '';
         this.commentCount++;
-        // Track analytics
         if (this.post.authorId) {
           this.analyticsService.trackEvent(this.post.id!, 'COMMENT', this.post.authorId).subscribe({ error: () => {} });
         }
-        // Notify post author (skip own posts)
         if (this.post.authorId && Number(userId) !== Number(this.post.authorId)) {
           this.sendNotification(this.post.authorId, 'COMMENT',
             `${this.authService.getCurrentUser()?.username || 'Someone'} commented on your post`, this.post.id);
@@ -169,7 +167,7 @@ export class PostCardComponent implements OnInit {
 
   deleteComment(id: number | undefined): void {
     if (!id || !confirm('Delete this comment?')) return;
-    this.postService.deleteComment(id).subscribe({
+    this.interactionService.deleteComment(id).subscribe({
       next: () => {
         this.comments = this.comments.filter(c => c.id !== id);
         this.commentCount = Math.max(0, this.commentCount - 1);
@@ -223,11 +221,9 @@ export class PostCardComponent implements OnInit {
       next: () => {
         this.shareSuccess = true;
         setTimeout(() => this.shareSuccess = false, 3000);
-        // Track analytics
         if (this.post.authorId) {
           this.analyticsService.trackEvent(this.post.id!, 'SHARE', this.post.authorId).subscribe({ error: () => {} });
         }
-        // Notify post author
         if (currentUserId && this.post.authorId && Number(currentUserId) !== Number(this.post.authorId)) {
           this.sendNotification(this.post.authorId, 'SHARE',
             `${this.authService.getCurrentUser()?.username || 'Someone'} shared your post`, this.post.id);
@@ -250,7 +246,9 @@ export class PostCardComponent implements OnInit {
 
   formatDate(date: string | undefined): string {
     if (!date) return '';
-    const d = new Date(date), now = new Date();
+    // Append 'Z' if no timezone info — backend sends LocalDateTime without timezone (UTC)
+    const normalized = date.endsWith('Z') || date.includes('+') ? date : date + 'Z';
+    const d = new Date(normalized), now = new Date();
     const diff = Math.floor((now.getTime() - d.getTime()) / 60000);
     if (diff < 1) return 'Just now';
     if (diff < 60) return `${diff}m ago`;

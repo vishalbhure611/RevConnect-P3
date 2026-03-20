@@ -3,9 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { PostService } from '../../services/post.service';
+import { FeedService } from '../../services/feed.service';
 import { AuthService } from '../../services/auth.service';
-import { FollowService } from '../../services/follow.service';
-import { UserService } from '../../services/user.service';
 import { Post } from '../../models/post.model';
 import { PostCardComponent } from '../post-card/post-card.component';
 
@@ -48,17 +47,14 @@ export class FeedComponent implements OnInit {
   hashtagInput = '';
 
   // Advanced (CREATOR/BUSINESS only)
-  scheduledAt = '';          // datetime-local value
-  taggedProductInput = '';   // comma-separated product IDs
+  scheduledAt = '';
+  taggedProductInput = '';
   taggedProductIds: number[] = [];
-
-  private followingIds: number[] = [];
 
   constructor(
     private postService: PostService,
-    public authService: AuthService,
-    private followService: FollowService,
-    private userService: UserService
+    private feedService: FeedService,
+    public authService: AuthService
   ) {}
 
   get currentRole(): string {
@@ -76,20 +72,11 @@ export class FeedComponent implements OnInit {
   }
 
   loadFeed(): void {
-    const userId = this.authService.getCurrentUserId();
-    if (!userId) return;
     this.isLoading = true;
     this.activeHashtag = '';
-
-    this.followService.getFollowing(userId).subscribe({
-      next: (ids) => { this.followingIds = ids; this.fetchFeed(); },
-      error: () => { this.followingIds = []; this.fetchFeed(); }
-    });
-  }
-
-  private fetchFeed(): void {
     const postType = this.filterPostType || undefined;
-    this.postService.getFeed(this.followingIds, postType).subscribe({
+    // feed-service handles following IDs server-side
+    this.feedService.getFeed(postType).subscribe({
       next: (posts) => {
         this.posts = posts;
         this.applyUserTypeFilter();
@@ -112,7 +99,7 @@ export class FeedComponent implements OnInit {
   applyFilters(): void {
     this.isLoading = true;
     this.activeHashtag = '';
-    this.fetchFeed();
+    this.loadFeed();
     this.showFilters = false;
   }
 
@@ -125,7 +112,7 @@ export class FeedComponent implements OnInit {
   }
 
   loadTrendingHashtags(): void {
-    this.postService.getTrendingHashtags(10).subscribe({
+    this.feedService.getTrendingHashtags(10).subscribe({
       next: (tags) => this.trendingHashtags = tags,
       error: () => {}
     });
@@ -145,7 +132,7 @@ export class FeedComponent implements OnInit {
     this.isLoading = true;
     this.filterPostType = '';
     this.filterUserType = '';
-    this.postService.searchByHashtag(clean).subscribe({
+    this.feedService.searchByHashtag(clean).subscribe({
       next: (posts) => { this.posts = posts; this.filteredPosts = posts; this.isLoading = false; },
       error: () => { this.isLoading = false; }
     });
@@ -163,7 +150,6 @@ export class FeedComponent implements OnInit {
     return !!(this.filterPostType || this.filterUserType || this.activeHashtag);
   }
 
-  // Parse tagged product IDs from comma-separated input
   parseTaggedProducts(): void {
     this.taggedProductIds = this.taggedProductInput
       .split(/[\s,]+/)
@@ -202,7 +188,6 @@ export class FeedComponent implements OnInit {
     this.postService.createPost(post).subscribe({
       next: (created) => {
         if (created.scheduledAt) {
-          // Scheduled — add to scheduled list, not feed
           this.scheduledPosts.unshift(created);
           this.successMessage = 'Post scheduled!';
         } else {

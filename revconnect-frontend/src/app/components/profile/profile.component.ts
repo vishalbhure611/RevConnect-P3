@@ -71,6 +71,13 @@ export class ProfileComponent implements OnInit {
   errorMessage = '';
   isLoading = false;
 
+  // Change password
+  showChangePassword = false;
+  pwForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
+  pwError = '';
+  pwSuccess = '';
+  pwLoading = false;
+
   constructor(
     private route: ActivatedRoute,
     private userService: UserService,
@@ -314,5 +321,36 @@ export class ProfileComponent implements OnInit {
 
   objectKeys(obj: any): string[] {
     return obj ? Object.keys(obj) : [];
+  }
+
+  submitChangePassword(): void {
+    this.pwError = '';
+    this.pwSuccess = '';
+    if (!this.pwForm.currentPassword || !this.pwForm.newPassword || !this.pwForm.confirmPassword) {
+      this.pwError = 'Please fill in all fields';
+      return;
+    }
+    if (this.pwForm.newPassword.length < 8) {
+      this.pwError = 'New password must be at least 8 characters';
+      return;
+    }
+    if (this.pwForm.newPassword !== this.pwForm.confirmPassword) {
+      this.pwError = 'New passwords do not match';
+      return;
+    }
+    if (!this.user?.id) return;
+    this.pwLoading = true;
+    this.userService.changePassword(this.user.id, this.pwForm.currentPassword, this.pwForm.newPassword).subscribe({
+      next: () => {
+        this.pwSuccess = 'Password changed successfully!';
+        this.pwForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
+        this.pwLoading = false;
+        setTimeout(() => { this.pwSuccess = ''; this.showChangePassword = false; }, 2500);
+      },
+      error: (e) => {
+        this.pwError = e.error?.error || 'Failed to change password';
+        this.pwLoading = false;
+      }
+    });
   }
 }
